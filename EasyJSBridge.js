@@ -1,71 +1,64 @@
-;
 (function(window) {
-
-    //1.window.webkit.messageHandlers.obj.postMessage({method:'m1',parameter:['','']})
-    //2.window.webkit.messageHandlers.method1.postMessage('','')
 
     function EasyJSBridge() {
 
 
     }
-    EasyJSBridge.prototype.inject = function() {
-        if (arguments.length < 2) {
-            return this;
-        }
-        if (arguments.length === 2) {
 
-            var o1 = arguments[0];
-            if (arguments[1] instanceof Array) {
-                this.injectAndroid(o1);
-                this.injectiOS(arguments[1]);
-            }
+    var injectAndroid = function(n,ms) {
+        //var isAndroid = navigator.userAgent.indexOf('Android') > -1 || navigator.userAgent.indexOf('Adr') > -1;
 
-        } else if (arguments.length === 3) {
-            var o2 = arguments[0];
-            var o3 = arguments[1];
-            if (arguments[2] instanceof Array) {
-                this.injectAndroid(o2);
-                this.injectiOS(o3, arguments[2]);
-            }
-        }
-
-        return this;
-    };
-    EasyJSBridge.prototype.injectAndroid = function() {
-        var isAndroid = navigator.userAgent.indexOf('Android') > -1 || navigator.userAgent.indexOf('Adr') > -1;
-
-        if (!isAndroid) {
-            return this;
-        }
-        if (arguments.length === 0) {
-            return this;
-        }
+        //if (!isAndroid) {
+        //    return this;
+        //}
         var f = function(o, m) {
-
             return function() {
-                window[o][m].apply(window[o], arguments);
+                if(typeof o[m] != 'undefined' ){
+                    o[m].apply(o, arguments);
+                }else{
+                    console.log("EasyJSBridge: android webview do not define method: "+m);
+                }
             };
         };
-        for (var i = 0; i < arguments.length; i++) {
-            if (typeof window[arguments[i]] != 'undefined') {
-                for (var j in window[arguments[i]]) {
-                    this[j] = f(arguments[i], j);
+       var find=function(arr,e){
+           for(var i=0;i<arr.length;i++){
+               if(arr[i]===e){
+                  return true;
+               }
+           }
+           return false;
+       };
+        if (typeof window[n] != 'undefined') {
+            var ps = Object.getOwnPropertyNames(window[n]);
+            for(var i=0;i<ms.length;i++){
+                if(!find(ps,ms[i])){
+                    ps.push(ms[i]);
                 }
             }
+            var _this =this;
+            ps.forEach(function(item,index){
+                _this[item] = f(window[n], item);
+            });
         }
-
         return this;
     };
-    EasyJSBridge.prototype.injectiOS = function(o, m) {
-        var isiOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
-        if (!isiOS) {
-            return this;
-        }
+    var injectiOS = function(o, m) {
+       // var isiOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+       // if (!isiOS) {
+       //     return this;
+       // }
+      
         if (typeof o === 'string') {
             if (typeof m != 'undefined' && m instanceof Array) {
                 var f = function(o, m) {
                     return function() {
-                        window.webkit.messageHandlers[o].postMessage({ method: m, parameter: Array.prototype.slice.apply(arguments) });
+                        if(typeof window.webkit != 'undefined' &&
+                        typeof window.webkit.messageHandlers[o] != 'undefined'){
+                            window.webkit.messageHandlers[o].postMessage({ method: m, parameter: Array.prototype.slice.apply(arguments) });
+                        }else{
+                            console.log("EasyJSBridge: ios webview do not define messageHandlers: "+o);
+                        }
+                        
                     };
 
                 };
@@ -78,9 +71,14 @@
 
             var fa = function(o) {
                 return function() {
-                    window.webkit.messageHandlers[o].postMessage.apply(window.webkit.messageHandlers[o], arguments);
+                    if(typeof window.webkit != 'undefined' &&
+                         typeof window.webkit.messageHandlers[o] != 'undefined'){
+                        window.webkit.messageHandlers[o].postMessage.apply(window.webkit.messageHandlers[o], arguments);
+                    }else{
+                        console.log("EasyJSBridge: ios webview do not define messageHandlers: "+o);
+                    }
+                   
                 };
-
             };
             for (var j = 0; j < o.length; j++) {
                 this[o[j]] = fa(o[j]);
@@ -88,5 +86,32 @@
         }
         return this;
     };
-    window.EasyJSBridge = new EasyJSBridge();
+    EasyJSBridge.prototype.inject = function() {
+        if (arguments.length < 2) {
+            return this;
+        }
+        if (arguments.length === 2) {
+
+            var o1 = arguments[0];
+            if (arguments[1] instanceof Array) {
+                injectAndroid.call(this,o1,arguments[1] );
+                injectiOS.call(this,arguments[1]);
+            }
+
+        } else if (arguments.length === 3) {
+            var o2 = arguments[0];
+            var o3 = arguments[1];
+            if (arguments[2] instanceof Array) {
+                injectAndroid.call(this,o2,arguments[2]);
+                injectiOS.call(this,o3, arguments[2]);
+            }
+        }
+        return this;
+    };
+    EasyJSBridge.create =function(){
+        var easy =  new EasyJSBridge();
+        easy.inject.apply(easy,arguments);
+        return easy;
+    };
+    window.EasyJSBridge = EasyJSBridge;
 })(window);
