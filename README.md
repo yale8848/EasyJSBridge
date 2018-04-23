@@ -11,9 +11,20 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
     var methods = ["test1", "test2", "test3"];
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
 
+<<<<<<< HEAD
     $(".test1").click(function() {
         easyJSBridge.test1("parameter1")
     });
+=======
+//init
+var easyJSBridge = EasyJSBridge.create("androidObj",["method1","method2"]);
+//or
+var easyJSBridge = EasyJSBridge.create("androidObj","iOSObj",["method1","method2"]);
+
+//Android,iOS调用一致
+easyJSBridge.method1("arg1","arg2");
+easyJSBridge.method2("arg1","arg2")
+>>>>>>> 8a91f4117d49058e32945b19006e86a5b6436a3c
 
     $(".test2").click(function() {
         easyJSBridge.test2("parameter1", 2)

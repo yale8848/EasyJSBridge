@@ -1,7 +1,8 @@
-/*
- * Create by yale, 2018-4-23
+/**
+ * Create by yale. 2018-4-23 
  */
 (function(window) {
+
     function EasyJSBridge() {
 
     }
