@@ -1,92 +1,159 @@
-;
+/*
+ * Create by yale, 2018-4-23
+ */
 (function(window) {
-
-    //1.window.webkit.messageHandlers.obj.postMessage({method:'m1',parameter:['','']})
-    //2.window.webkit.messageHandlers.method1.postMessage('','')
-
     function EasyJSBridge() {
 
-
     }
-    EasyJSBridge.prototype.inject = function() {
+    var log = function(text) {
+        console.log("EasyJSBridge: " + text);
+    };
+
+    var injectObj = function() {
+
         if (arguments.length < 2) {
-            return this;
+            return;
         }
+
+        var isAndroid = navigator.userAgent.indexOf('Android') > -1 || navigator.userAgent.indexOf('Adr') > -1;
+        var isiOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+
+        var androidObjName = "";
+        var iOSObjName = "";
+
+
+        var find = function(arr, e) {
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i] === e) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+
+
+        var getRealArags = function(args) {
+
+            var android = [];
+            var ios = [];
+            for (var i = 0; i < args.length; i++) {
+
+                if (args[i] instanceof Array) {
+                    ios = args[i];
+                    break;
+
+                } else {
+                    android.push(args[i]);
+                }
+
+            }
+            if (ios.length === 0) {
+                return args;
+            }
+            if (isAndroid) {
+                return android;
+            }
+            if (isiOS) {
+                return ios;
+            }
+            return args;
+        };
+
+
+        var callBack = function(m) {
+            return function() {
+
+                var args = Array.prototype.slice.apply(arguments);
+
+                if (isAndroid) {
+                    if (typeof window[androidObjName] != 'undefined') {
+
+                        if (typeof typeof window[androidObjName][m] != 'undefined') {
+                            window[androidObjName][m].apply(window[androidObjName], getRealArags(args));
+                        } else {
+                            log("android webview do not define method " + m);
+                        }
+                    } else {
+                        log("android webview do not define obj " + androidObjName);
+                    }
+
+                    return;
+                }
+                if (isiOS) {
+
+                    if (iOSObjName != "") {
+                        if (typeof window.webkit != 'undefined' && typeof window.webkit.messageHandlers[iOSObjName] != 'undefined') {
+                            var o1 = window.webkit.messageHandlers[iOSObjName];
+                            o1.postMessage({ method: m, parameter: getRealArags(args) });
+                        } else {
+                            log("ios webview do not define object " + iOSObjName);
+                        }
+
+                    } else {
+                        if (typeof window.webkit != 'undefined' && typeof window.webkit.messageHandlers[m] != 'undefined') {
+                            var o2 = window.webkit.messageHandlers[m];
+                            o2.postMessage.apply(o2, getRealArags(args));
+                        } else {
+                            log("ios webview do not define object " + m);
+                        }
+                    }
+                    return;
+                }
+
+                log("call in moblie webview");
+            };
+        };
+
+        var _this = this;
+
+        var addMethods = function(ms) {
+
+            for (var i = 0; i < ms.length; i++) {
+                _this[ms[i]] = callBack(ms[i]);
+            }
+            if (isAndroid && typeof window[androidObjName] != 'undefined') {
+
+                var find = function(arr, e) {
+                    for (var i = 0; i < arr.length; i++) {
+                        if (arr[i] === e) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                for (var j in window[androidObjName]) {
+                    if (!find(ms, j)) {
+                        _this[j] = callBack(j);
+                    }
+                }
+            }
+        };
         if (arguments.length === 2) {
 
-            var o1 = arguments[0];
+            androidObjName = arguments[0];
             if (arguments[1] instanceof Array) {
-                this.injectAndroid(o1);
-                this.injectiOS(arguments[1]);
+                addMethods(arguments[1]);
+                return;
             }
 
         } else if (arguments.length === 3) {
-            var o2 = arguments[0];
-            var o3 = arguments[1];
+            androidObjName = arguments[0];
+            iOSObjName = arguments[1];
             if (arguments[2] instanceof Array) {
-                this.injectAndroid(o2);
-                this.injectiOS(o3, arguments[2]);
+                addMethods(arguments[2]);
+                return;
             }
         }
 
-        return this;
+        log("parameters error!");
+
     };
-    EasyJSBridge.prototype.injectAndroid = function() {
-        var isAndroid = navigator.userAgent.indexOf('Android') > -1 || navigator.userAgent.indexOf('Adr') > -1;
-
-        if (!isAndroid) {
-            return this;
-        }
-        if (arguments.length === 0) {
-            return this;
-        }
-        var f = function(o, m) {
-
-            return function() {
-                window[o][m].apply(window[o], arguments);
-            };
-        };
-        for (var i = 0; i < arguments.length; i++) {
-            if (typeof window[arguments[i]] != 'undefined') {
-                for (var j in window[arguments[i]]) {
-                    this[j] = f(arguments[i], j);
-                }
-            }
-        }
-
-        return this;
+    EasyJSBridge.create = function() {
+        var easy = new EasyJSBridge();
+        injectObj.apply(easy, arguments);
+        return easy;
     };
-    EasyJSBridge.prototype.injectiOS = function(o, m) {
-        var isiOS = !!navigator.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
-        if (!isiOS) {
-            return this;
-        }
-        if (typeof o === 'string') {
-            if (typeof m != 'undefined' && m instanceof Array) {
-                var f = function(o, m) {
-                    return function() {
-                        window.webkit.messageHandlers[o].postMessage({ method: m, parameter: Array.prototype.slice.apply(arguments) });
-                    };
-
-                };
-                for (var i = 0; i < m.length; i++) {
-                    this[m[i]] = f(o, m[i]);
-                }
-            }
-
-        } else if (o instanceof Array) {
-
-            var fa = function(o) {
-                return function() {
-                    window.webkit.messageHandlers[o].postMessage.apply(window.webkit.messageHandlers[o], arguments);
-                };
-
-            };
-            for (var j = 0; j < o.length; j++) {
-                this[o[j]] = fa(o[j]);
-            }
-        }
-        return this;
-    };
-    window.EasyJSBridge = new EasyJSBridge();
+    window.EasyJSBridge = EasyJSBridge;
 })(window);

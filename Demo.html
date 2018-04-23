@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+</head>
+
+<style type="text/css">
+    * {
+        padding: 0px;
+        margin: 0px;
+    }
+    
+    .main {
+        text-align: center
+    }
+    
+    .btn {
+        display: inline-block;
+        width: 60%;
+        height: 50px;
+        line-height: 50px;
+        border-radius: 10px;
+        background-color: #1E8AFF;
+        color: white;
+        font-size: 20px;
+        box-shadow: 0 0 15px #41b3fc;
+        margin-top: 20px;
+        cursor: pointer;
+    }
+</style>
+
+<body>
+
+    <div class="main">
+        <a class="btn test1">test1</a>
+        <a class="btn test2">test1</a>
+        <a class="btn test3">test3</a>
+    </div>
+
+</body>
+
+<script type="text/javascript" src="https://cdn.bootcss.com/zepto/1.2.0/zepto.min.js"></script>
+<script type="text/javascript" src="EasyJSBridge.js"></script>
+<script type="text/javascript">
+    var methods = ["test1", "test2", "test3"];
+    var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
+
+    $(".test1").click(function() {
+        easyJSBridge.test1("parameter1")
+    });
+
+    $(".test2").click(function() {
+        easyJSBridge.test2("parameter1", 2)
+    });
+    $(".test3").click(function() {
+        easyJSBridge.test3("androidParameter1", 2, ["iosParameter1", 2, "3"])
+    });
+</script>
+
+</html>
