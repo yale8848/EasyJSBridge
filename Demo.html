@@ -33,9 +33,9 @@
 <body>
 
     <div class="main">
-        <a class="btn test1">test1</a>
-        <a class="btn test2">test1</a>
-        <a class="btn test3">test3</a>
+        <a class="btn method1">method1</a>
+        <a class="btn method2">method2</a>
+        <a class="btn method3">method3</a>
     </div>
 
 </body>
@@ -43,18 +43,18 @@
 <script type="text/javascript" src="https://cdn.bootcss.com/zepto/1.2.0/zepto.min.js"></script>
 <script type="text/javascript" src="EasyJSBridge.js"></script>
 <script type="text/javascript">
-    var methods = ["test1", "test2", "test3"];
+    var methods = ["method1", "method2", "method3"];
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
 
-    $(".test1").click(function() {
-        easyJSBridge.test1("parameter1")
+    $(".method1").click(function() {
+        easyJSBridge.method1("parameter1")
     });
 
-    $(".test2").click(function() {
-        easyJSBridge.test2("parameter1", 2)
+    $(".method2").click(function() {
+        easyJSBridge.method2("parameter1", 2)
     });
-    $(".test3").click(function() {
-        easyJSBridge.test3("androidParameter1", 2, ["iosParameter1", 2, "3"])
+    $(".method3").click(function() {
+        easyJSBridge.method3("androidParameter1", 2, ["iosParameter1", 2, "3"])
     });
 </script>
 

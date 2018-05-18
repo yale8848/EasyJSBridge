@@ -8,21 +8,44 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
 
 <script type="text/javascript" src="EasyJSBridge.js"></script>
 <script type="text/javascript">
-    var methods = ["test1", "test2", "test3"];
+    var methods = ["method1", "method2", "method3"];
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
-    $(".test1").click(function() {
-        easyJSBridge.test1("parameter1")
+    $(".method1").click(function() {
+        easyJSBridge.method1("parameter1")
     });
-    $(".test2").click(function() {
-        easyJSBridge.test2("parameter1", 2)
+    $(".method2").click(function() {
+        easyJSBridge.method2("parameter1", 2)
     });
-    $(".test3").click(function() {
-        easyJSBridge.test3("androidParameter1", 2, ["iosParameter1", 2, "3"])
+    $(".method3").click(function() {
+        easyJSBridge.method3("androidParameter1", 2, ["iosParameter1", 2, "3"])
     });
 </script>
 
 
 ```
+
+## 反调接口文档Demo
+
+### 方法：method1(parameter1)  
+    参数：parameter1 string
+
+### 方法：method2(parameter1,parameter2) 
+    参数：parameter1 string
+    参数：parameter2 int
+
+### 方法：[android] method3(parameter1,parameter2)  
+    参数：parameter1 string
+    参数：parameter2 int
+    
+    [iOS] method3(parameter1,parameter2,parameter3)
+    
+    参数：parameter1 string
+    参数：parameter2 int
+    参数：parameter3 string
+
+
+`通过反调接口文档Demo的函数定义，JS调用Demo中无论是android还是iOS，反调函数名称都是一样的，同时兼容android和iOS反调参数不一致的情况`
+
 ## 约定
 
 - 在Android中通过`webView.addJavascriptInterface(obj,'android')` 绑定反调；
@@ -38,25 +61,25 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
         然后解析js调用的数据：
 
         ```
-        window.webkit.messageHandlers.iOS.postMessage({method:'test1',parameter:['','']});
-        window.webkit.messageHandlers.iOS.postMessage({method:'test2',parameter:['','']})
+        window.webkit.messageHandlers.iOS.postMessage({method:'method1',parameter:['','']});
+        window.webkit.messageHandlers.iOS.postMessage({method:'method2',parameter:['','']})
         ```
-       注意`{method:'test1',parameter:['','']}`中的`method`和`parameter`必须约定如此,`parameter`是参数数组，iOS需自己解析参数；
+       注意`{method:'method1',parameter:['','']}`中的`method`和`parameter`必须约定如此,`parameter`是参数数组，iOS需自己解析参数；
 
   2. 通过addScriptMessageHandler添加多个name，然后根据不同name来区分调用的方法
 
        ```
-       [userContentController addScriptMessageHandler:self name:@"test1"];
-       [userContentController addScriptMessageHandler:self name:@"test2"]; 
+       [userContentController addScriptMessageHandler:self name:@"method1"];
+       [userContentController addScriptMessageHandler:self name:@"method2"]; 
 
        ```
 
        ```
    
-       if ([message.name isEqualToString:@"test1"]) {
+       if ([message.name isEqualToString:@"method1"]) {
   
     
-       } else if ([message.name isEqualToString:@"test2"]) {
+       } else if ([message.name isEqualToString:@"method2"]) {
      
        }
        ```
@@ -64,13 +87,13 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
        然后解析js调用的数据：
 
        ```
-       window.webkit.messageHandlers.test1.postMessage('arg1',2)
-       window.webkit.messageHandlers.test2.postMessage('arg1','arg2')
+       window.webkit.messageHandlers.method1.postMessage('arg1',2)
+       window.webkit.messageHandlers.method2.postMessage('arg1','arg2')
        ```
 - JS调用中，约定的反调方法名称都要显式在数组中初始化
 
   ```
-    var methods = ["test1", "test2", "test3"];
+    var methods = ["method1", "method2", "method3"];
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
   ```
 
@@ -91,15 +114,15 @@ var easyJSBridge = EasyJSBridge.create('androidObj','iOSObj',[methodList])
 - 如果有iOSObj，那就按照如下方法约定反调
   
  ```
-    window.webkit.messageHandlers.iOS.postMessage({method:'test1',parameter:['','']});
-    window.webkit.messageHandlers.iOS.postMessage({method:'test2',parameter:['','']})
+    window.webkit.messageHandlers.iOS.postMessage({method:'method1',parameter:['','']});
+    window.webkit.messageHandlers.iOS.postMessage({method:'method2',parameter:['','']})
  ```
 
 - 如果没有iOSObj，那就按照如下方法约定反调
 
  ```
-    window.webkit.messageHandlers.test1.postMessage('arg1',2)
-    window.webkit.messageHandlers.test2.postMessage('arg1','arg2')
+    window.webkit.messageHandlers.method1.postMessage('arg1',2)
+    window.webkit.messageHandlers.method2.postMessage('arg1','arg2')
  ```
 
 ### 调用反调
@@ -121,13 +144,14 @@ easyJSBridge.method2("arg1","arg2");
 
 **备注** 
 
-如果Android和iOS调用参数值不一样，或者参数不一样，可以如下调用：
+1. 如果Android和iOS调用参数值不一样，或者参数不一样，可以如下调用：
 
 ```
 easyJSBridge.method1("androidArg1","androidArg2",["iOSArg1","iOSArg2","iOSArg3"]);
 ```
 method1中的数组参数给iOS用，前面的参数给android用
 
+2. 页面在PC浏览器打开反调不会报错，可以放心使用；
 
 ## License
 
