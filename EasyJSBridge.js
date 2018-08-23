@@ -12,6 +12,8 @@
 
     var injectObj = function() {
 
+        var _this = this;
+
         if (arguments.length < 2) {
             return;
         }
@@ -38,29 +40,38 @@
 
             var android = [];
             var ios = [];
+            var callBack = null;
             for (var i = 0; i < args.length; i++) {
 
                 if (args[i] instanceof Array) {
                     ios = args[i];
-                    break;
-
                 } else {
-                    android.push(args[i]);
+                    if (args[i] instanceof Function) {
+                        callBack = args[i];
+                    } else {
+                        android.push(args[i]);
+                    }
                 }
 
             }
-            if (ios.length === 0) {
-                return args;
-            }
-            if (isAndroid) {
-                return android;
-            }
-            if (isiOS) {
-                return ios;
-            }
-            return args;
-        };
+            var ret = {
+                callBack: callBack,
+                args: args
+            };
 
+            if (ios.length == 0) {
+                ret.args = android;
+                return ret;
+            }
+
+            if (isAndroid) {
+                ret.args = android;
+            } else
+            if (isiOS) {
+                ret.args = ios;
+            }
+            return ret;
+        };
 
         var callBack = function(m) {
             return function() {
@@ -70,8 +81,13 @@
                 if (isAndroid) {
                     if (typeof window[androidObjName] != 'undefined') {
 
-                        if (typeof typeof window[androidObjName][m] != 'undefined') {
-                            window[androidObjName][m].apply(window[androidObjName], getRealArags(args));
+                        if (typeof window[androidObjName][m] != 'undefined') {
+                            var arg = getRealArags(args);
+                            if (arg.callBack != null) {
+                                EasyJSBridge[m] = arg.callBack;
+                            }
+
+                            window[androidObjName][m].apply(window[androidObjName], arg.args);
                         } else {
                             log("android webview do not define method " + m);
                         }
@@ -86,7 +102,11 @@
                     if (iOSObjName != "") {
                         if (typeof window.webkit != 'undefined' && typeof window.webkit.messageHandlers[iOSObjName] != 'undefined') {
                             var o1 = window.webkit.messageHandlers[iOSObjName];
-                            o1.postMessage({ method: m, parameter: getRealArags(args) });
+                            var arg = getRealArags(args);
+                            if (arg.callBack != null) {
+                                EasyJSBridge[m] = arg.callBack;
+                            }
+                            o1.postMessage({ method: m, parameter: arg.args });
                         } else {
                             log("ios webview do not define object " + iOSObjName);
                         }
@@ -94,7 +114,11 @@
                     } else {
                         if (typeof window.webkit != 'undefined' && typeof window.webkit.messageHandlers[m] != 'undefined') {
                             var o2 = window.webkit.messageHandlers[m];
-                            o2.postMessage.apply(o2, getRealArags(args));
+                            var arg = getRealArags(args);
+                            if (arg.callBack != null) {
+                                EasyJSBridge[m] = arg.callBack;
+                            }
+                            o2.postMessage.apply(o2, arg.args);
                         } else {
                             log("ios webview do not define object " + m);
                         }
@@ -106,7 +130,7 @@
             };
         };
 
-        var _this = this;
+
 
         var addMethods = function(ms) {
 

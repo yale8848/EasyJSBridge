@@ -11,10 +11,12 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
     var methods = ["method1", "method2", "method3"];
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
     $(".method1").click(function() {
-        easyJSBridge.method1("parameter1")
+        easyJSBridge.method1("parameter1",function(data1,data2){
+            console.log(data1);
+        });
     });
     $(".method2").click(function() {
-        easyJSBridge.method2("parameter1", 2)
+        easyJSBridge.method2("parameter1")
     });
     $(".method3").click(function() {
         easyJSBridge.method3("androidParameter1", 2, ["iosParameter1", 2, "3"])
@@ -26,8 +28,9 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
 
 ## 反调接口文档Demo
 
-### 方法：method1(parameter1)  
+### 方法：method1(parameter1,function(data){})  
     参数：parameter1 string
+    回调方法：function(data1,data2){}
 
 ### 方法：method2(parameter1,parameter2) 
     参数：parameter1 string
@@ -95,6 +98,18 @@ EasyJSBridge让JS在Android/iOS WebView中反调接口统一，调用更容易�
   ```
     var methods = ["method1", "method2", "method3"];
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
+  ```
+
+- 回调
+  
+  Android,iOS 回调js通过调用Js函数  `EasyJSBridge.method("parmaters");` 来实现回调
+
+  比如上面demo中的method1最后一个匿名函数就是回调函数，Android或者iOS通过调用 `EasyJSBridge.method1("parmaters","parmaters2");` 即可，Android WebView注意要放在主线程调用；
+
+  ```
+   easyJSBridge.method1("parameter1",function(data1,data2){//回调函数
+            console.log(data1);
+        });
   ```
 
 ## API

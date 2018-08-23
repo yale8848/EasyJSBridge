@@ -47,7 +47,9 @@
     var easyJSBridge = EasyJSBridge.create("android", "ios", methods);
 
     $(".method1").click(function() {
-        easyJSBridge.method1("parameter1")
+        easyJSBridge.method1("parameter1", function(data1, data2) {
+
+        })
     });
 
     $(".method2").click(function() {
